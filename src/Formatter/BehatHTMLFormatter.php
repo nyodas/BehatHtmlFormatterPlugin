@@ -25,7 +25,8 @@ use emuse\BehatHTMLFormatter\Classes\Step;
 use emuse\BehatHTMLFormatter\Classes\Suite;
 use emuse\BehatHTMLFormatter\Printer\FileOutputPrinter;
 use emuse\BehatHTMLFormatter\Renderer\BaseRenderer;
-
+use Behat\Mink\Mink;
+use Behat\MinkExtension\Context\Initializer\MinkAwareInitializer;
 
 /**
  * Class BehatHTMLFormatter
@@ -34,6 +35,9 @@ use emuse\BehatHTMLFormatter\Renderer\BaseRenderer;
 class BehatHTMLFormatter implements Formatter {
 
   //<editor-fold desc="Variables">
+
+  public $minkAwareInitializer;
+
   /**
    * @var array
    */
@@ -147,13 +151,13 @@ class BehatHTMLFormatter implements Formatter {
    * @param $name
    * @param $base_path
    */
-  function __construct($name, $renderer, $filename, $base_path) {
+  function __construct($name, $renderer, $filename, $base_path,MinkAwareInitializer $minkAwareInitializer) {
     $this->name = $name;
     $this->renderer = new BaseRenderer($renderer, $base_path);
     $this->printer = new FileOutputPrinter($this->renderer->getNameList(), $filename, $base_path);
     $this->timer = new Timer();
     $this->memory = new Memory();
-
+    $this->minkAwareInitializer = $minkAwareInitializer;
   }
 
   /**
@@ -493,7 +497,6 @@ class BehatHTMLFormatter implements Formatter {
    */
   public function onAfterStepTested(AfterStepTested $event) {
     $result = $event->getTestResult();
-
     /** @var Step $step */
     $step = new Step();
     $step->setKeyword($event->getStep()->getKeyword());

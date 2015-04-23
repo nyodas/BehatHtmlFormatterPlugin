@@ -68,8 +68,8 @@ class BehatHTMLFormatterExtension implements ExtensionInterface {
     $definition->addArgument($config['name']);
     $definition->addArgument($config['renderer']);
     $definition->addArgument($config['file_name']);
-
     $definition->addArgument('%paths.base%');
+    $definition->addArgument($container->getDefinition('mink.context_initializer'));
     $container->setDefinition("html.formatter", $definition)
       ->addTag("output.formatter");
   }
