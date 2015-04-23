@@ -10,7 +10,7 @@ use Behat\MinkExtension\Context\MinkContext;
 
 
 
-class ScreenshotRenderer
+class ScreenshotRenderer extends Behat2Renderer
 {
 
     private $context;
@@ -19,7 +19,6 @@ class ScreenshotRenderer
     {
         $this->context = new MinkContext();
     }
-
 
     /**
      * Renders before an exercice.
@@ -38,266 +37,13 @@ class ScreenshotRenderer
             <title>Behat Test Suite</title> " . $this->getCSS() . "
         </head>
         <body>
-        <div id='behat'>" ;
+        <div id='behat'>
+        <div class='switchers'>
+        <a href='#' id='behat_show_screenshots'>[+] screenshots</a>
+        <a href='#' id='behat_hide_screenshots'>[-] screenshots</a>
+        </div>" ;
 
         return $print ;
-    }
-
-    /**
-     * Renders after an exercice.
-     *
-     * @param object   : BehatHTMLFormatter object
-     * @return string  : HTML generated
-     */
-    public function renderAfterExercise($obj) {
-        //--> features results
-        $strFeatPassed = '' ;
-        if (count($obj->getPassedFeatures()) > 0) {
-            $strFeatPassed = ' <strong class="passed">'.count($obj->getPassedFeatures()).' success</strong>';
-        }
-
-        $strFeatFailed = '' ;
-        $sumRes = 'passed' ;
-        if (count($obj->getFailedFeatures()) > 0) {
-            $strFeatFailed = ' <strong class="failed">'.count($obj->getFailedFeatures()).' fail</strong>';
-            $sumRes = 'failed' ;
-        }
-
-        //--> scenarios results
-        $strScePassed = '' ;
-        if (count($obj->getPassedScenarios()) > 0) {
-            $strScePassed = ' <strong class="passed">'.count($obj->getPassedScenarios()).' success</strong>';
-        }
-
-        $strSceFailed = '' ;
-        if (count($obj->getFailedScenarios()) > 0) {
-            $strSceFailed = ' <strong class="failed">'.count($obj->getFailedScenarios()).' fail</strong>';
-        }
-
-        //--> steps results
-        $strStepsPassed = '' ;
-        if (count($obj->getPassedSteps()) > 0) {
-            $strStepsPassed = ' <strong class="passed">'.count($obj->getPassedSteps()).' success</strong>';
-        }
-
-        $strStepsPending = '' ;
-        if (count($obj->getPendingSteps()) > 0) {
-            $strStepsPending = ' <strong class="pending">'.count($obj->getPendingSteps()).' pending</strong>';
-        }
-
-        $strStepsSkipped = '' ;
-        if (count($obj->getSkippedSteps()) > 0) {
-            $strStepsSkipped = ' <strong class="skipped">'.count($obj->getSkippedSteps()).' skipped</strong>';
-        }
-
-        $strStepsFailed = '' ;
-        if (count($obj->getFailedSteps()) > 0) {
-            $strStepsFailed = ' <strong class="failed">'.count($obj->getFailedSteps()).' fail</strong>';
-        }
-
-
-        //totals
-        $featTotal = (count($obj->getFailedFeatures()) + count($obj->getPassedFeatures()));
-        $sceTotal = (count($obj->getFailedScenarios()) + count($obj->getPassedScenarios())) ;
-        $stepsTotal = (count($obj->getFailedSteps()) + count($obj->getPassedSteps()) + count($obj->getSkippedSteps()) + count($obj->getPendingSteps())) ;
-
-        //list of pending steps to display
-        $strPendingList = '' ;
-        if (count($obj->getPendingSteps()) > 0) {
-            foreach($obj->getPendingSteps() as $pendingStep) {
-                $strPendingList .= '
-                    <li>' . $pendingStep->getKeyword() . ' ' . $pendingStep->getText() . '</li>' ;
-            }
-                $strPendingList = '
-            <div class="pending">Pending steps :
-                <ul>' . $strPendingList . '
-                </ul>
-            </div>';
-        }
-
-
-        $print = '
-        <div class="summary '.$sumRes.'">
-            <div class="counters">
-                <p class="features">
-                    '.$featTotal.' features ('.$strFeatPassed.$strFeatFailed.' )
-                </p>
-                <p class="scenarios">
-                    '.$sceTotal.' scenarios ('.$strScePassed.$strSceFailed.' )
-                </p>
-                <p class="steps">
-                    '.$stepsTotal.' steps ('.$strStepsPassed.$strStepsPending.$strStepsSkipped.$strStepsFailed.' )
-                </p>
-                <p class="time">
-                '.$obj->getTimer().' - '.$obj->getMemory().'
-                </p>
-            </div>
-            <div class="switchers">
-                <a href="javascript:void(0)" id="behat_show_all">[+] all</a>
-                <a href="javascript:void(0)" id="behat_hide_all">[-] all</a>
-            </div>
-        </div> ' .$strPendingList. '
-    </div>' . $this->getJS() . '
-</body>
-</html>' ;
-
-        return $print ;
-
-    }
-
-
-    /**
-     * Renders before a suite.
-     *
-     * @param object   : BehatHTMLFormatter object
-     * @return string  : HTML generated
-     */
-    public function renderBeforeSuite($obj) {
-        $print = '
-        <div class="suite">Suite : ' . $obj->getCurrentSuite()->getName() . '</div>';
-
-        return $print ;
-
-    }
-
-    /**
-     * Renders after a suite.
-     *
-     * @param object   : BehatHTMLFormatter object
-     * @return string  : HTML generated
-     */
-    public function renderAfterSuite($obj) {
-        return '' ;
-    }
-
-    /**
-     * Renders before a feature.
-     *
-     * @param object   : BehatHTMLFormatter object
-     * @return string  : HTML generated
-     */
-    public function renderBeforeFeature($obj) {
-
-        //feature head
-        $print = '
-        <div class="feature">
-            <h2>
-                <span id="feat'.$obj->getCurrentFeature()->getId().'" class="keyword"> Feature: </span>
-                <span class="title">' . $obj->getCurrentFeature()->getName() . '</span>
-            </h2>
-            <p>' . $obj->getCurrentFeature()->getDescription() . '</p>
-            <ul class="tags">' ;
-        foreach($obj->getCurrentFeature()->getTags() as $tag) {
-            $print .= '
-                <li>@' . $tag .'</li>' ;
-        }
-        $print .= '
-            </ul>' ;
-
-        //TODO path is missing (?)
-
-        return $print ;
-    }
-
-    /**
-     * Renders after a feature.
-     *
-     * @param object   : BehatHTMLFormatter object
-     * @return string  : HTML generated
-     */
-    public function renderAfterFeature($obj) {
-        //list of results
-        $print = '
-            <div class="featureResult '.$obj->getCurrentFeature()->getPassedClass().'">Feature has ' . $obj->getCurrentFeature()->getPassedClass() ;
-
-        //percent only if failed scenarios
-        if ($obj->getCurrentFeature()->getTotalAmountOfScenarios() > 0 && $obj->getCurrentFeature()->getPassedClass() === 'failed') {
-            $print .= '
-                <span>Scenarios passed : ' . round($obj->getCurrentFeature()->getPercentPassed(), 2) . '%,
-                Scenarios failed : ' . round($obj->getCurrentFeature()->getPercentFailed(), 2) . '%</span>' ;
-        }
-
-        $print .= '
-            </div>
-        </div>';
-
-
-        return $print ;
-    }
-
-    /**
-     * Renders before a scenario.
-     *
-     * @param object   : BehatHTMLFormatter object
-     * @return string  : HTML generated
-     */
-    public function renderBeforeScenario($obj) {
-        //scenario head
-        $print = '
-            <div class="scenario">
-                <ul class="tags">' ;
-        foreach($obj->getCurrentScenario()->getTags() as $tag) {
-            $print .= '
-                    <li>@' . $tag .'</li>';
-        }
-        $print .= '
-                </ul>';
-
-        $print .= '
-                <h3>
-                    <span class="keyword">' . $obj->getCurrentScenario()->getId() . ' Scenario: </span>
-                    <span class="title">' . $obj->getCurrentScenario()->getName() . '</span>
-                </h3>
-                <ol>' ;
-
-        //TODO path is missing
-
-        return $print ;
-    }
-
-    /**
-     * Renders after a scenario.
-     *
-     * @param object   : BehatHTMLFormatter object
-     * @return string  : HTML generated
-     */
-    public function renderAfterScenario($obj) {
-        $print = '
-                </ol>
-            </div>';
-
-        return $print ;
-    }
-
-    /**
-     * Renders before an outline.
-     *
-     * @param object   : BehatHTMLFormatter object
-     * @return string  : HTML generated
-     */
-    public function renderBeforeOutline($obj) {
-        return '' ;
-    }
-
-    /**
-     * Renders after an outline.
-     *
-     * @param object   : BehatHTMLFormatter object
-     * @return string  : HTML generated
-     */
-    public function renderAfterOutline($obj) {
-        return '' ;
-    }
-
-    /**
-     * Renders before a step.
-     *
-     * @param object   : BehatHTMLFormatter object
-     * @return string  : HTML generated
-     */
-    public function renderBeforeStep($obj) {
-
-        return '' ;
     }
 
     /**
@@ -378,6 +124,7 @@ class ScreenshotRenderer
         }
         return $print;
     }
+
     /**
      * To include CSS
      *
@@ -658,6 +405,14 @@ class ScreenshotRenderer
                     content:' |-';
                     font-weight:bold;
                 }
+                .screenshot img {
+                    display: none;
+                }
+
+                .screenshot.jq-toggle-opened img {
+                    display: block;
+                    width:100%;
+                }
             </style>
 
             <style type='text/css' media='print'>
@@ -721,10 +476,32 @@ class ScreenshotRenderer
         return "<script type='text/javascript' src='https://ajax.googleapis.com/ajax/libs/jquery/1.6.3/jquery.min.js'></script>
         <script type='text/javascript'>
             $(document).ready(function(){
+
                 Array.prototype.diff = function(a) {
                     return this.filter(function(i) {return a.indexOf(i) < 0;});
                 };
-            
+
+                $('#behat .screenshot a').click(function(){
+                    $(this).parent().toggleClass('jq-toggle-opened');
+
+                    return false;
+                }).parent().addClass('jq-toggle');
+
+                $('#behat_show_screenshots').click(function() {
+                    $('.screenshot').each(function() {
+                        $(this).addClass('jq-toggle-opened');
+                    });
+                    $('#behat_show_all').click();
+                    return false;
+                });
+
+                $('#behat_hide_screenshots').click(function() {
+                    $('.screenshot').each(function() {
+                        $(this).removeClass('jq-toggle-opened');
+                    });
+                    return false;
+                });
+
                 $('#behat .feature h2').click(function(){
                     $(this).parent().toggleClass('jq-toggle-opened');
                 }).parent().addClass('jq-toggle');
@@ -817,6 +594,6 @@ class ScreenshotRenderer
                     });
             });
         </script>" ;
-    
-    }    
+
+    }
 }
