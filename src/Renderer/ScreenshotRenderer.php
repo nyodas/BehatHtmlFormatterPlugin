@@ -93,8 +93,8 @@ class ScreenshotRenderer extends Behat2Renderer
             $print .= $this->takeScreenshot();
         }
 
-
-        if (!empty($step->getException())) {
+        $stepError =$step->getException();
+        if (!empty($stepError)) {
             $print .= '
                         <pre class="backtrace">' . $step->getException() . '</pre>' ;
         }
