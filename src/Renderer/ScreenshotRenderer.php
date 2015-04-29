@@ -34,7 +34,7 @@ class ScreenshotRenderer extends Behat2Renderer
         <html xmlns ='http://www.w3.org/1999/xhtml'>
         <head>
             <meta http-equiv='Content-Type' content='text/html;charset=utf-8'/>
-            <title>Behat Test Suite</title> " . $this->getCSS() . "
+            <title>Behat Test Suite</title> " . $this->getCSS()  . $this->getJS() . "
         </head>
         <body>
         <div id='behat'>
@@ -87,8 +87,6 @@ class ScreenshotRenderer extends Behat2Renderer
                             <span class="path">' . $strPath . '</span>
                         </div>' ;
 
-//        echo  $this->session->isStarted();
-//        echo "- " . base64_encode($mink->getSession('default')->getDriver()->getScreenshot()) . "\n";
         if($screenshotToggle){
             $print .= $this->takeScreenshot();
         }
@@ -123,6 +121,108 @@ class ScreenshotRenderer extends Behat2Renderer
             $print .= '</div>';
         }
         return $print;
+    }
+
+    /**
+     * Renders after an exercice.
+     *
+     * @param object   : BehatHTMLFormatter object
+     * @return string  : HTML generated
+     */
+    public function renderAfterExercise($obj) {
+        //--> features results
+        $strFeatPassed = '' ;
+        if (count($obj->getPassedFeatures()) > 0) {
+            $strFeatPassed = ' <strong class="passed">'.count($obj->getPassedFeatures()).' success</strong>';
+        }
+
+        $strFeatFailed = '' ;
+        $sumRes = 'passed' ;
+        if (count($obj->getFailedFeatures()) > 0) {
+            $strFeatFailed = ' <strong class="failed">'.count($obj->getFailedFeatures()).' fail</strong>';
+            $sumRes = 'failed' ;
+        }
+
+        //--> scenarios results
+        $strScePassed = '' ;
+        if (count($obj->getPassedScenarios()) > 0) {
+            $strScePassed = ' <strong class="passed">'.count($obj->getPassedScenarios()).' success</strong>';
+        }
+
+        $strSceFailed = '' ;
+        if (count($obj->getFailedScenarios()) > 0) {
+            $strSceFailed = ' <strong class="failed">'.count($obj->getFailedScenarios()).' fail</strong>';
+        }
+
+        //--> steps results
+        $strStepsPassed = '' ;
+        if (count($obj->getPassedSteps()) > 0) {
+            $strStepsPassed = ' <strong class="passed">'.count($obj->getPassedSteps()).' success</strong>';
+        }
+
+        $strStepsPending = '' ;
+        if (count($obj->getPendingSteps()) > 0) {
+            $strStepsPending = ' <strong class="pending">'.count($obj->getPendingSteps()).' pending</strong>';
+        }
+
+        $strStepsSkipped = '' ;
+        if (count($obj->getSkippedSteps()) > 0) {
+            $strStepsSkipped = ' <strong class="skipped">'.count($obj->getSkippedSteps()).' skipped</strong>';
+        }
+
+        $strStepsFailed = '' ;
+        if (count($obj->getFailedSteps()) > 0) {
+            $strStepsFailed = ' <strong class="failed">'.count($obj->getFailedSteps()).' fail</strong>';
+        }
+
+
+        //totals
+        $featTotal = (count($obj->getFailedFeatures()) + count($obj->getPassedFeatures()));
+        $sceTotal = (count($obj->getFailedScenarios()) + count($obj->getPassedScenarios())) ;
+        $stepsTotal = (count($obj->getFailedSteps()) + count($obj->getPassedSteps()) + count($obj->getSkippedSteps()) + count($obj->getPendingSteps())) ;
+
+        //list of pending steps to display
+        $strPendingList = '' ;
+        if (count($obj->getPendingSteps()) > 0) {
+            foreach($obj->getPendingSteps() as $pendingStep) {
+                $strPendingList .= '
+                    <li>' . $pendingStep->getKeyword() . ' ' . $pendingStep->getText() . '</li>' ;
+            }
+            $strPendingList = '
+            <div class="pending">Pending steps :
+                <ul>' . $strPendingList . '
+                </ul>
+            </div>';
+        }
+
+
+        $print = '
+        <div class="summary '.$sumRes.'">
+            <div class="counters">
+                <p class="features">
+                    '.$featTotal.' features ('.$strFeatPassed.$strFeatFailed.' )
+                </p>
+                <p class="scenarios">
+                    '.$sceTotal.' scenarios ('.$strScePassed.$strSceFailed.' )
+                </p>
+                <p class="steps">
+                    '.$stepsTotal.' steps ('.$strStepsPassed.$strStepsPending.$strStepsSkipped.$strStepsFailed.' )
+                </p>
+                <p class="time">
+                '.$obj->getTimer().' - '.$obj->getMemory().'
+                </p>
+            </div>
+            <div class="switchers">
+                <a href="javascript:void(0)" id="behat_show_all">[+] all</a>
+                <a href="javascript:void(0)" id="behat_hide_all">[-] all</a>
+            </div>
+        </div> ' .$strPendingList. '
+    </div>
+</body>
+</html>' ;
+
+        return $print ;
+
     }
 
     /**
@@ -592,6 +692,8 @@ class ScreenshotRenderer extends Behat2Renderer
                         scenario.addClass('jq-toggle-opened');
                         feature.addClass('jq-toggle-opened');
                     });
+
+                $('#behat_show_all').click();
             });
         </script>" ;
 
